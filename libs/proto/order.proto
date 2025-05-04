@@ -1,0 +1,19 @@
+syntax = "proto3";
+package order;
+
+message OrderRequest {
+  string orderId    = 1;
+  string productId  = 2;
+  string customerId = 3;
+  int32  quantity   = 4;
+}
+
+message OrderReply {
+  string orderId     = 1;
+  string status      = 2;
+  string deliveryDate= 3;
+}
+
+service ERPService {
+  rpc ProcessOrder(OrderRequest) returns (OrderReply);
+}

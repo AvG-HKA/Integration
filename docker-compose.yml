@@ -1,0 +1,44 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  ecommerce-service:
+    build:
+      context: .
+      dockerfile: ecommerce-service/Dockerfile
+    container_name: ecommerce-service
+    depends_on:
+      - rabbitmq
+      - erp-service
+    ports:
+      - "3000:3000"
+
+  erp-service:
+    build:
+      context: .
+      dockerfile: erp-service/Dockerfile
+    container_name: erp-service
+    depends_on:
+      - rabbitmq
+    ports:
+      - "50051:50051"
+
+  crm-service:
+    build:
+      context: .
+      dockerfile: crm-service/Dockerfile
+    container_name: crm-service
+    depends_on:
+      - rabbitmq
+
+  logging-service:
+    build:
+      context: .
+      dockerfile: logging-service/Dockerfile
+    container_name: logging-service
+    depends_on:
+      - rabbitmq

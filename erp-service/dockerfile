@@ -1,7 +1,9 @@
-FROM node:23-alpine-slim
+FROM node:23-alpine
 WORKDIR /app
-COPY package*.json ./
+RUN npm install -g @nestjs/cli
+COPY erp-service/package.json erp-service/tsconfig.json ./
 RUN npm install
-COPY . .
+COPY libs/proto ./libs/proto
+COPY erp-service/src ./src
 RUN npm run build
-CMD ["node", "dist/main.js"]
+CMD ["npm", "run", "start"]
