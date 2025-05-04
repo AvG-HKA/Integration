@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { ERPModule } from './erp/erp.module';
+import { ERPService } from './erp/erp.service';
 
-@Module({ imports: [ERPModule] })
+@Module({
+  providers: [ERPService],
+})
 export class AppModule {}

@@ -8,5 +8,11 @@
     "amqplib": "^0.10.7",
     "reflect-metadata": "^0.2.2",
     "typescript": "^5.8.3"
+  },
+
+  "scripts": {
+    "build": "nest build",
+    "start": "nest start --watch",
+    "start:prod": "node dist/main.js"
   }
 }
