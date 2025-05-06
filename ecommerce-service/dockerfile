@@ -3,6 +3,7 @@ WORKDIR /app
 RUN npm install -g @nestjs/cli
 COPY ecommerce-service/package.json ecommerce-service/tsconfig.json ./
 RUN npm install
-COPY . .
+COPY libs/proto ./libs/proto
+COPY ecommerce-service/src ./src
 RUN npm run build
-CMD ["node", "dist/main.js"]
+CMD ["npm", "run", "start"]

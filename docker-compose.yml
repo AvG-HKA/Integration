@@ -1,21 +1,16 @@
 services:
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:4.1-management
     container_name: rabbitmq
+    restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
-
-  ecommerce-service:
-    build:
-      context: .
-      dockerfile: ecommerce-service/Dockerfile
-    container_name: ecommerce-service
-    depends_on:
-      - rabbitmq
-      - erp-service
-    ports:
-      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   erp-service:
     build:
@@ -23,9 +18,23 @@ services:
       dockerfile: erp-service/Dockerfile
     container_name: erp-service
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "50051:50051"
+
+  ecommerce-service:
+    build:
+      context: .
+      dockerfile: ecommerce-service/Dockerfile
+    container_name: ecommerce-service
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      erp-service:
+        condition: service_started
+    ports:
+      - "3000:3000"
 
   crm-service:
     build:
@@ -33,7 +42,8 @@ services:
       dockerfile: crm-service/Dockerfile
     container_name: crm-service
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy
 
   logging-service:
     build:
@@ -41,4 +51,5 @@ services:
       dockerfile: logging-service/Dockerfile
     container_name: logging-service
     depends_on:
-      - rabbitmq
+      rabbitmq:
+        condition: service_healthy

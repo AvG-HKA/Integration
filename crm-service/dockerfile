@@ -4,6 +4,6 @@ RUN npm install -g @nestjs/cli
 COPY crm-service/package.json crm-service/tsconfig.json ./
 RUN npm install
 COPY libs/proto ./libs/proto
-COPY ecommerce-service/src ./src
+COPY crm-service/src ./src
 RUN npm run build
-CMD ["node", "dist/main.js"]
+CMD ["npm", "run", "start"]
