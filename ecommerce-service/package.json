@@ -5,14 +5,22 @@
     "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.1.0",
     "@nestjs/microservices": "^11.1.0",
-    "amqplib": "^0.10.7",
+    "@nestjs/platform-express": "^11.1.0",
+    "amqp-connection-manager": "^4.1.14",
+    "amqplib": "^0.10.8",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "reflect-metadata": "^0.2.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "uuid": "^11.1.0"
   },
-
   "scripts": {
     "build": "nest build",
     "start": "nest start --watch",
     "start:prod": "node dist/main.js"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.7",
+    "@types/uuid": "^10.0.0"
   }
 }
