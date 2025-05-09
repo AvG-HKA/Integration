@@ -1,29 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { OrderDTO } from '../dtos/order.dto';
 import { ProductDTO } from '../dtos/product.dto';
 import { v4 as uuidv4 } from 'uuid';
-import * as protoLoader from '@grpc/proto-loader';
-import { credentials } from '@grpc/grpc-js';
 import * as amqp from 'amqplib';
-import { join } from 'path';
+import { Observable, lastValueFrom } from 'rxjs';
+import { ClientGrpc } from '@nestjs/microservices';
 
 interface ERPService {
-  ProcessOrder(data: {
+  processOrder(data: {
     orderId: string;
     productId: string;
     customerId: string;
     quantity: number;
-  }): Promise<{ orderId: string; status: string; deliveryDate: string }>;
+  }): Observable<{
+    orderId: string;
+    status: string;
+    deliveryDate: string;
+  }>;
 }
 
 @Injectable()
-export class OrdersService {
+export class OrdersService implements OnModuleInit{
   private products = new Map<string, ProductDTO>();
   private orders = new Map<string, OrderDTO>();
-  private erpClient: ERPService;
+  private erpService!: ERPService;
   private channel!: amqp.Channel;
 
-  constructor() {
+  constructor(
+    @Inject('ERP_PACKAGE') private client: ClientGrpc,
+  ) {
     // Test-Produkt
     this.products.set('prod-1', {
       productId: 'prod-1',
@@ -32,16 +37,6 @@ export class OrdersService {
       price: 9.99,
       stockQuantity: 100,
     });
-
-    // gRPC-Client für ERP
-    const pkgDef = protoLoader.loadSync(
-      join(process.cwd(), 'libs', 'proto', 'order.proto'),
-    );
-    const grpcObj: any = require('@grpc/grpc-js').loadPackageDefinition(pkgDef);
-    this.erpClient = new grpcObj.order.ERPService(
-      'erp-service:50051',
-      credentials.createInsecure(),
-    );
 
     // RabbitMQ
     amqp.connect('amqp://guest:guest@rabbitmq:5672').then(conn =>
@@ -68,6 +63,10 @@ export class OrdersService {
     );
   }
 
+  onModuleInit() {
+    this.erpService = this.client.getService<ERPService>('ERPService');
+  }
+
   async create(dto: OrderDTO) {
     // Bestellung anlegen
     const id = uuidv4();
@@ -87,17 +86,19 @@ export class OrdersService {
     this.channel.publish('logs', '', Buffer.from(JSON.stringify(dto)));
 
     // gRPC-Aufruf an ERP
-    const reply = await this.erpClient.ProcessOrder({
-      orderId: id,
-      productId: dto.productId!,
-      customerId: dto.customerId!,
-      quantity: dto.quantity!,
-    });
+    const reply = await lastValueFrom(
+      this.erpService.processOrder({
+        orderId:    id,
+        productId:  dto.productId!,
+        customerId: dto.customerId!,
+        quantity:   dto.quantity!,
+      }),
+    );
 
     // Antwort verarbeiten und Status aktualisieren
     const order = this.orders.get(id)!;
     order.deliveryStatus = reply.status as 'Processing' | 'Shipped' | 'Delivered';
-    order.deliveryDate = new Date(reply.deliveryDate);
+    order.deliveryDate     = new Date(reply.deliveryDate);
     return { orderId: id, status: reply.status, deliveryDate: reply.deliveryDate };
   }
 
