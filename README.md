@@ -6,7 +6,8 @@ Die gesamte Umgebung wird über ein einziges `docker-compose.yml` orchestriert, 
 
 ## Projektarchitektur
 
-![image](https://github.com/user-attachments/assets/10d2fbc8-f65b-401a-9087-538c8dd04ceb)
+![image](https://github.com/user-attachments/assets/1fba10ce-3a6f-48b8-bad0-b91697bf21b6)
+
 
 
 ## Stack
