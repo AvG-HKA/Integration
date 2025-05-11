@@ -19,6 +19,7 @@ export class CrmService implements OnModuleInit {
     // Konsumieren der Bestellungsevents
     this.channel.consume('order.created', msg => {
       if (!msg) return;
+
       const data: any = JSON.parse(msg.content.toString());
       const history: OrderHistoryDTO = {
         orderId: data.orderId,
@@ -32,7 +33,7 @@ export class CrmService implements OnModuleInit {
       this.histories.set(data.customerId, list);
 
       // Logging
-      this.channel.publish('logs', '', msg.content);
+      this.channel.publish('logs', '', msg.content, { headers: { source: 'crm-service' }});
 
       this.channel.ack(msg);
     });

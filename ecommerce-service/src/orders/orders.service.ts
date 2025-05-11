@@ -56,7 +56,7 @@ export class OrdersService implements OnModuleInit{
             ord.deliveryDate = new Date(data.deliveryDate);
           }
           // Logging
-          ch.publish('logs', '', msg.content);
+          ch.publish('logs', '', msg.content, { headers: { source: 'ecommerce consumed from erp-service' } });
           ch.ack(msg);
         });
       }),
@@ -83,7 +83,7 @@ export class OrdersService implements OnModuleInit{
     // CRM-Event
     this.channel.sendToQueue('order.created', Buffer.from(JSON.stringify(dto)));
     // Logging
-    this.channel.publish('logs', '', Buffer.from(JSON.stringify(dto)));
+    this.channel.publish('logs', '', Buffer.from(JSON.stringify(dto)), { headers: { source: 'ecommerce-service' }});
 
     // gRPC-Aufruf an ERP
     const reply = await lastValueFrom(
@@ -109,5 +109,9 @@ export class OrdersService implements OnModuleInit{
 
   getProduct(id: string) {
     return this.products.get(id);
+  }
+
+  findAll(): OrderDTO[] {
+    return Array.from(this.orders.values());
   }
 }
