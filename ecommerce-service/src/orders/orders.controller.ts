@@ -16,6 +16,11 @@ export class OrdersController {
   status(@Param('id') id: string) {
     return this.ordersService.getStatus(id);
   }
+
+  @Get()
+  findAll(): OrderDTO[] {
+    return this.ordersService.findAll();
+  }
 }
 
 @Controller('products')

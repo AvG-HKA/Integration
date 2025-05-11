@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { GrpcMethod } from '@nestjs/microservices';
 import * as amqp from 'amqplib';
 import { OrderStatusDTO } from '../dtos/orderStatus.dto';
 
@@ -18,8 +17,7 @@ export class ERPService {
     );
   }
 
-  @GrpcMethod('ERPService', 'ProcessOrder')
-  async processOrder(data: {
+  async handleProcessOrder(request: {
     orderId: string;
     productId: string;
     customerId: string;
@@ -32,7 +30,7 @@ export class ERPService {
     const isoString = deliveryDate.toISOString();
 
     const reply: OrderStatusDTO = {
-      orderId: data.orderId,
+      orderId: request.orderId,
       status: 'Processed',
       deliveryDate: isoString,
     };
@@ -44,7 +42,7 @@ export class ERPService {
     );
 
     // Logging
-    this.channel.publish('logs', '', Buffer.from(JSON.stringify(reply)));
+    this.channel.publish('logs', '', Buffer.from(JSON.stringify(reply)), { headers: { source: 'erp-service' }});
 
     // an den gRPC-Client
     return reply;

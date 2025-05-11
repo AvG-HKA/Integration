@@ -28,7 +28,24 @@ export class LoggingService implements OnModuleInit {
     // Nachrichten konsumieren und in Datei schreiben
     this.channel.consume(q.queue, msg => {
       if (!msg) return;
-      fs.appendFileSync(this.logFile, msg.content.toString() + '\n');
+
+      // Bessere Einträge zusammenstellen
+      const metadata = {
+        timestamp:   new Date().toISOString(),
+        exchange:    msg.fields.exchange,
+        source:      msg.properties.headers?.source ?? '',
+      };
+
+      const payload = (() => {
+        try {
+          return JSON.parse(msg.content.toString());
+        } catch {
+          return msg.content.toString();
+        }
+      })();
+
+      const entry = { ...metadata, payload };
+      fs.appendFileSync(this.logFile, JSON.stringify(entry) + '\n');
       this.channel.ack(msg);
     });
 
